@@ -207,6 +207,12 @@ export async function authenticateInteractive(): Promise<TokenData> {
 
   const redirectUri = credentials.redirect_uri || "http://127.0.0.1:3000/callback";
 
+  // Parse redirect URI to get port and path
+  const parsedRedirectUri = new URL(redirectUri);
+  const callbackPort = parseInt(parsedRedirectUri.port) || 3000;
+  const callbackPath = parsedRedirectUri.pathname || "/callback";
+  const callbackHost = parsedRedirectUri.hostname || "127.0.0.1";
+
   // Build authorization URL
   const authParams = new URLSearchParams({
     response_type: "code",
@@ -226,8 +232,8 @@ export async function authenticateInteractive(): Promise<TokenData> {
   const code = await new Promise<string>((resolve, reject) => {
     const server = http.createServer(async (req, res) => {
       try {
-        const url = new URL(req.url || "", "http://127.0.0.1:3000");
-        if (url.pathname === "/callback") {
+        const url = new URL(req.url || "", `http://${callbackHost}:${callbackPort}`);
+        if (url.pathname === callbackPath) {
           const code = url.searchParams.get("code");
           const error = url.searchParams.get("error");
 
@@ -260,8 +266,8 @@ export async function authenticateInteractive(): Promise<TokenData> {
       }
     });
 
-    server.listen(3000, "127.0.0.1", () => {
-      console.log("Listening on http://127.0.0.1:3000 for OAuth callback...");
+    server.listen(callbackPort, callbackHost, () => {
+      console.log(`Listening on http://${callbackHost}:${callbackPort} for OAuth callback...`);
     });
 
     // Open browser automatically
