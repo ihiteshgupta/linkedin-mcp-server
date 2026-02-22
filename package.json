@@ -1,17 +1,23 @@
 {
-  "name": "linkedin-mcp-server",
+  "name": "@dev-hitesh-gupta/linkedin-mcp-server",
   "version": "1.0.0",
-  "description": "LinkedIn MCP Server for posting and profile management",
+  "description": "LinkedIn MCP Server — post, share articles, and manage your LinkedIn profile through Claude using the official LinkedIn API and OAuth 2.0. 6 tools for posting, profile access, and connection management.",
   "type": "module",
   "main": "dist/index.js",
   "bin": {
-    "linkedin-mcp-server": "./dist/index.js"
+    "linkedin-mcp-server": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
-    "auth": "node dist/auth-cli.js"
+    "auth": "node dist/auth-cli.js",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
@@ -26,11 +32,23 @@
   },
   "keywords": [
     "mcp",
+    "model-context-protocol",
     "linkedin",
+    "social-media",
+    "oauth",
+    "automation",
     "claude",
-    "ai",
-    "model-context-protocol"
+    "ai-tools",
+    "llm-tools"
   ],
-  "author": "ihiteshgupta",
-  "license": "MIT"
+  "author": "Hitesh Gupta <hiteshgupta3012@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dev-hitesh-gupta/linkedin-mcp-server.git"
+  },
+  "homepage": "https://github.com/dev-hitesh-gupta/linkedin-mcp-server#readme",
+  "bugs": {
+    "url": "https://github.com/dev-hitesh-gupta/linkedin-mcp-server/issues"
+  }
 }

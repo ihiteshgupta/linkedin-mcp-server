@@ -1,58 +1,69 @@
-# LinkedIn MCP Server
+# linkedin-mcp-server
 
-A Model Context Protocol (MCP) server for LinkedIn that enables AI assistants to post content and manage your LinkedIn profile.
+> LinkedIn MCP Server — post content, share articles, and manage your LinkedIn profile through Claude using the official LinkedIn API.
 
-## Features
+[![npm version](https://img.shields.io/npm/v/@dev-hitesh-gupta/linkedin-mcp-server.svg)](https://www.npmjs.com/package/@dev-hitesh-gupta/linkedin-mcp-server)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 
-- Post text updates to LinkedIn
-- Share articles with commentary
-- Get profile information
-- Delete posts
-- Multiple visibility options (Public, Connections, Logged-in users)
+**6 tools** for creating posts, sharing articles, managing your profile, and more — powered by the official LinkedIn REST API with OAuth 2.0.
 
-## Prerequisites
+## Tools
 
-- Node.js 18+
-- A LinkedIn Developer App with OAuth 2.0 credentials
+| Tool | Description | Permissions Required |
+|------|-------------|---------------------|
+| `linkedin_get_profile` | Get your LinkedIn profile information | Basic (OpenID) |
+| `linkedin_create_post` | Create a text post (up to 3000 chars) | Share on LinkedIn |
+| `linkedin_create_article_post` | Share an article link with commentary | Share on LinkedIn |
+| `linkedin_get_posts` | Get your recent posts | Share on LinkedIn ⚠️ |
+| `linkedin_delete_post` | Delete a post by ID | Share on LinkedIn |
+| `linkedin_get_connections_count` | Get your total connection count | ⚠️ May need partner access |
+
+> ⚠️ **API Limitations:** `linkedin_get_posts` and `linkedin_get_connections_count` use LinkedIn endpoints that may require elevated or partner-level API access depending on your app's approval status. The core tools (get profile, create post, share article, delete post) work with standard access.
+
+---
 
 ## Setup
 
-### 1. Create a LinkedIn Developer App
+LinkedIn requires creating a Developer App to get OAuth credentials. This takes about 10 minutes.
 
-1. Go to [LinkedIn Developer Portal](https://developer.linkedin.com/apps)
-2. Click "Create App"
-3. Fill in the required information:
-   - App name
-   - LinkedIn Page (you'll need a company page)
-   - App logo
-4. After creation, go to the "Auth" tab
-5. Add `http://127.0.0.1:3000/callback` to "Authorized redirect URLs for your app"
-6. Note your **Client ID** and **Client Secret**
+### Step 1 — Create a LinkedIn Developer App
 
-### 2. Request API Products
+1. Go to [developer.linkedin.com/apps](https://developer.linkedin.com/apps)
+2. Click **"Create app"**
+3. Fill in the required fields:
+   - **App name**: e.g. `My LinkedIn MCP`
+   - **LinkedIn Page**: You need a LinkedIn company page linked — create a simple one at [linkedin.com/company/setup/new](https://www.linkedin.com/company/setup/new/) if you don't have one
+   - **App logo**: Upload any image (required)
+4. Agree to the terms and click **"Create app"**
 
-In your LinkedIn app settings, go to "Products" and request access to:
+### Step 2 — Configure OAuth Redirect URL
 
-- **Sign In with LinkedIn using OpenID Connect** (Required - for authentication)
-- **Share on LinkedIn** (Required - for posting)
+1. In your new app, go to the **"Auth"** tab
+2. Under **"OAuth 2.0 settings"**, find **"Authorized redirect URLs for your app"**
+3. Click **"Add redirect URL"** and enter exactly:
+   ```
+   http://127.0.0.1:3000/callback
+   ```
+4. Click **"Update"**
+5. Copy your **Client ID** and **Client Secret** from this page — you'll need them next
 
-These typically get approved instantly for personal use.
+### Step 3 — Request API Products
 
-### 3. Install & Configure
+1. Go to the **"Products"** tab in your app
+2. Request access to both of these products:
+   - **Sign In with LinkedIn using OpenID Connect** — click "Request access" → Select → Agree
+   - **Share on LinkedIn** — click "Request access" → Select → Agree
+3. Both are typically approved instantly for personal use
+
+### Step 4 — Install & Configure
 
 ```bash
-cd linkedin-mcp-server
+# Install globally
+npm install -g @dev-hitesh-gupta/linkedin-mcp-server
 
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
-# Create config directory
+# Create config directory and add your credentials
 mkdir -p ~/.linkedin-mcp
-
-# Create credentials file
 cat > ~/.linkedin-mcp/credentials.json << 'EOF'
 {
   "client_id": "YOUR_CLIENT_ID",
@@ -60,106 +71,113 @@ cat > ~/.linkedin-mcp/credentials.json << 'EOF'
 }
 EOF
 
-# Authenticate (opens browser)
-npm run auth
+# Authenticate — opens browser for LinkedIn sign-in
+linkedin-mcp-server auth
 ```
 
-### 4. Register with Claude Code
+Your access token is saved to `~/.linkedin-mcp/token.json` and valid for 60 days.
+
+### Step 5 — Add to Claude Code
 
 ```bash
-claude mcp add linkedin -- node /path/to/linkedin-mcp-server/dist/index.js
+claude mcp add linkedin -- npx @dev-hitesh-gupta/linkedin-mcp-server
 ```
 
-Or add manually to `~/.claude.json`:
+Or manually in your Claude config (`~/.claude/claude_desktop_config.json`):
 
 ```json
 {
   "mcpServers": {
     "linkedin": {
-      "command": "node",
-      "args": ["/path/to/linkedin-mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["@dev-hitesh-gupta/linkedin-mcp-server"]
     }
   }
 }
 ```
 
-## Available Tools
-
-| Tool | Description |
-|------|-------------|
-| `linkedin_get_profile` | Get your LinkedIn profile information |
-| `linkedin_create_post` | Create a text post on LinkedIn |
-| `linkedin_create_article_post` | Share an article with commentary |
-| `linkedin_get_posts` | Get your recent posts |
-| `linkedin_delete_post` | Delete a post by ID |
-| `linkedin_get_connections_count` | Get your connection count |
+---
 
 ## Usage Examples
 
-### Create a Text Post
-
+**Create a post:**
 ```
-Post to LinkedIn: "Excited to share that I'm learning about AI assistants! #AI #Technology"
-```
-
-### Share an Article
-
-```
-Share this article on LinkedIn with my thoughts: https://example.com/article
-Commentary: "Great insights on the future of AI development"
+Post to LinkedIn: "Just shipped a new open-source MCP server for LinkedIn automation! Check it out. #opensource #ai"
 ```
 
-### Different Visibility Options
+**Share an article:**
+```
+Share this article on LinkedIn: https://example.com/article
+My commentary: "Great read on the future of AI tooling"
+```
 
-- `PUBLIC` - Visible to everyone (default)
-- `CONNECTIONS` - Visible only to your 1st-degree connections
-- `LOGGED_IN` - Visible only to logged-in LinkedIn members
+**Control visibility:**
 
-## File Locations
+| Value | Who sees it |
+|-------|-------------|
+| `PUBLIC` | Everyone on LinkedIn (default) |
+| `CONNECTIONS` | Your 1st-degree connections only |
+| `LOGGED_IN` | Any logged-in LinkedIn member |
 
-- Credentials: `~/.linkedin-mcp/credentials.json`
-- Auth token: `~/.linkedin-mcp/token.json`
+---
+
+## Re-authentication
+
+LinkedIn tokens expire after **60 days**. Re-authenticate when needed:
+
+```bash
+rm ~/.linkedin-mcp/token.json
+linkedin-mcp-server auth
+```
+
+---
+
+## Data & Auth Storage
+
+All data is stored locally:
+
+```
+~/.linkedin-mcp/
+├── credentials.json    # Your LinkedIn app Client ID + Secret
+└── token.json          # OAuth access token (expires in 60 days)
+```
+
+> **Security:** Never commit these files to version control.
+
+---
 
 ## Troubleshooting
 
-### "Not authenticated" error
-
-Run the authentication flow again:
+**"Not authenticated" error:**
 ```bash
-npm run auth
+linkedin-mcp-server auth
 ```
 
-### "Unable to determine member URN" error
+**"Unable to determine member URN":**
+Ensure the **Sign In with LinkedIn using OpenID Connect** product is approved in your app's Products tab.
 
-Ensure you have the "Sign In with LinkedIn using OpenID Connect" product enabled in your LinkedIn app.
+**Post creation fails:**
+Ensure the **Share on LinkedIn** product is approved. Check the Products tab in your LinkedIn Developer app.
 
-### Token expired
+**"Access blocked" during sign-in:**
+Your LinkedIn app may still be under review. Check the Products tab for approval status.
 
-LinkedIn tokens expire after 60 days. Delete the token file and re-authenticate:
+**Token expired:**
 ```bash
-rm ~/.linkedin-mcp/token.json
-npm run auth
+rm ~/.linkedin-mcp/token.json && linkedin-mcp-server auth
 ```
 
-### Post creation fails
+**`linkedin_get_posts` or `linkedin_get_connections_count` returns errors:**
+These tools use LinkedIn API endpoints that require elevated permissions not available with standard developer access. This is a LinkedIn API restriction.
 
-Ensure you have the "Share on LinkedIn" product enabled and approved in your LinkedIn app.
+---
 
-## Security Notes
+## Requirements
 
-- OAuth tokens are stored locally in `~/.linkedin-mcp/token.json`
-- Never commit credentials.json or token.json to version control
-- The server only requests necessary scopes for posting and profile access
-
-## API Limitations
-
-LinkedIn's API has some restrictions:
-
-- Post character limit: 3000 characters
-- Rate limits apply (varies by endpoint)
-- Some features (like reading the feed) require partner-level access
-- Connection data access is limited
+- Node.js 18+
+- A LinkedIn account
+- LinkedIn Developer App with OAuth credentials (see setup above)
 
 ## License
 
-MIT
+MIT — [Hitesh Gupta](https://github.com/dev-hitesh-gupta)
